@@ -1,10 +1,10 @@
 package herbplugin
 
 type Plugin interface {
-	InitPlugin(opt *Options) error
-	LoadPlugin() error
-	ClosePlugin() error
-	StartPlugin() error
+	MustInitPlugin(opt *Options)
+	MustLoadPlugin()
+	MustClosePlugin()
+	MustStartPlugin()
 	GetPluginParam(name string) string
 	GetPluginTrusted() *Trusted
 	GetPluginLocation() *Location
@@ -17,21 +17,18 @@ type BasicPlugin struct {
 	context *Context
 }
 
-func (p *BasicPlugin) ClosePlugin() error {
-	return nil
+func (p *BasicPlugin) MustClosePlugin() {
+
 }
 
-func (p *BasicPlugin) LoadPlugin() error {
-	return nil
+func (p *BasicPlugin) MustLoadPlugin() {
 }
-func (p *BasicPlugin) StartPlugin() error {
+func (p *BasicPlugin) MustStartPlugin() {
 	p.context.Start()
-	return nil
 }
-func (p *BasicPlugin) InitPlugin(opt *Options) error {
+func (p *BasicPlugin) MustInitPlugin(opt *Options) {
 	p.context = NewContext()
 	p.options = opt
-	return nil
 }
 func (p *BasicPlugin) GetPluginParam(name string) string {
 	return p.options.Params[name]

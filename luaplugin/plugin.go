@@ -21,51 +21,45 @@ type Plugin struct {
 	modules      []*Module
 }
 
-func (p *Plugin) InitPlugin(opt *herbplugin.Options) error {
-	err := p.BasicPlugin.InitPlugin(opt)
-	if err != nil {
-		return err
-	}
+func (p *Plugin) MustInitPlugin(opt *herbplugin.Options) error {
+	p.BasicPlugin.MustInitPlugin(opt)
 	for _, v := range p.modules {
-		err = v.InstallFn(p)
+		err := v.InstallFn(p)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 	return nil
 }
 
-func (p *Plugin) StartPlugin() error {
-	err := p.BasicPlugin.StartPlugin()
-	if err != nil {
-		return err
-	}
+func (p *Plugin) MustStartPlugin() {
+	p.BasicPlugin.MustStartPlugin()
+
 	if p.startCommand != "" {
-		err = p.LState.DoString(p.startCommand)
+		err := p.LState.DoString(p.startCommand)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-	return nil
 }
-func (p *Plugin) LoadPlugin() error {
+func (p *Plugin) MustLoadPlugin() {
 	if p.entry != "" {
 		err := p.LState.DoFile(filepath.Join(p.GetPluginLocation().Path, p.entry))
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-	return p.BasicPlugin.LoadPlugin()
+	p.BasicPlugin.MustLoadPlugin()
 }
-func (p *Plugin) ClosePlugin() error {
+func (p *Plugin) MustClosePlugin() {
 	for _, v := range p.modules {
 		err := v.UninstallFn(p)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 	p.LState.Close()
-	return p.BasicPlugin.ClosePlugin()
+	p.BasicPlugin.MustClosePlugin()
 }
 
 type Module struct {
