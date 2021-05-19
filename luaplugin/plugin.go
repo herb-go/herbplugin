@@ -8,6 +8,8 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
+const DefaultNamespace = "plugin"
+
 func New() *Plugin {
 	return &Plugin{
 		LState: lua.NewState(),
@@ -20,10 +22,14 @@ type Plugin struct {
 	herbplugin.BasicPlugin
 	startCommand string
 	modules      []*Module
+	Namespace    string
+	Builtin      map[string]lua.LGFunction
 }
 
 func (p *Plugin) MustInitPlugin(opt *herbplugin.Options) {
 	p.BasicPlugin.MustInitPlugin(opt)
+	p.Builtin = map[string]lua.LGFunction{}
+
 	var processs = make([]Process, 0, len(p.modules))
 	for k := range p.modules {
 		if p.modules[k] != nil {
@@ -32,10 +38,14 @@ func (p *Plugin) MustInitPlugin(opt *herbplugin.Options) {
 	}
 	ComposeProcess(processs...)(context.TODO(), p, Nop)
 }
-
+func (p *Plugin) builtinLoader(L *lua.LState) int {
+	mod := L.SetFuncs(L.NewTable(), p.Builtin)
+	L.Push(mod)
+	return 1
+}
 func (p *Plugin) MustStartPlugin() {
 	p.BasicPlugin.MustStartPlugin()
-
+	p.LState.PreloadModule(p.Namespace, p.builtinLoader)
 	if p.startCommand != "" {
 		err := p.LState.DoString(p.startCommand)
 		if err != nil {
@@ -107,3 +117,17 @@ func CreatePlugin(opt *Options) *Plugin {
 	p.modules = opt.Modules
 	return p
 }
+
+const ModuleNameParam = "herbplugin.param"
+
+var ModuleParam = CreateModule(
+	ModuleNameParam,
+	func(ctx context.Context, plugin *Plugin, next func(ctx context.Context, plugin *Plugin)) {
+		plugin.Builtin["getparam"] = func(L *lua.LState) int {
+			name := L.ToString(1)
+			L.Push(lua.LString(plugin.GetPluginParam(name)))
+			return 1
+		}
+	},
+	nil,
+)
