@@ -1,6 +1,7 @@
 package luaplugin
 
 import (
+	"context"
 	"path/filepath"
 
 	"github.com/herb-go/herbplugin"
@@ -21,15 +22,15 @@ type Plugin struct {
 	modules      []*Module
 }
 
-func (p *Plugin) MustInitPlugin(opt *herbplugin.Options) error {
+func (p *Plugin) MustInitPlugin(opt *herbplugin.Options) {
 	p.BasicPlugin.MustInitPlugin(opt)
-	for _, v := range p.modules {
-		err := v.InstallFn(p)
-		if err != nil {
-			panic(err)
+	var processs = make([]Process, 0, len(p.modules))
+	for k := range p.modules {
+		if p.modules[k] != nil {
+			processs = append(processs, p.modules[k].InstallProcess)
 		}
 	}
-	return nil
+	ComposeProcess(processs...)(context.TODO(), p, Nop)
 }
 
 func (p *Plugin) MustStartPlugin() {
@@ -52,40 +53,57 @@ func (p *Plugin) MustLoadPlugin() {
 	p.BasicPlugin.MustLoadPlugin()
 }
 func (p *Plugin) MustClosePlugin() {
-	for _, v := range p.modules {
-		err := v.UninstallFn(p)
-		if err != nil {
-			panic(err)
+	defer p.LState.Close()
+	var processs = make([]Process, 0, len(p.modules))
+	for k := range p.modules {
+		if p.modules[k] != nil {
+			processs = append(processs, p.modules[k].UninstallProcess)
 		}
 	}
-	p.LState.Close()
+	ComposeProcess(processs...)(context.TODO(), p, Nop)
 	p.BasicPlugin.MustClosePlugin()
 }
 
 type Module struct {
-	Name        string
-	InstallFn   func(*Plugin) error
-	UninstallFn func(*Plugin) error
+	Name             string
+	InstallProcess   Process
+	UninstallProcess Process
 }
 
-func CreateModule(name string, installfn func(*Plugin) error, uninstallfn func(*Plugin) error) *Module {
-	return &Module{
-		Name:        name,
-		InstallFn:   installfn,
-		UninstallFn: uninstallfn,
+var Nop = func(ctx context.Context, plugin *Plugin) {}
+
+type Process func(ctx context.Context, plugin *Plugin, next func(ctx context.Context, plugin *Plugin))
+
+func ComposeProcess(series ...Process) Process {
+	return func(ctx context.Context, plugin *Plugin, receiver func(ctx context.Context, plugin *Plugin)) {
+		if len(series) == 0 {
+			receiver(ctx, plugin)
+			return
+		}
+		series[0](ctx, plugin, func(newctx context.Context, plugin *Plugin) {
+			ComposeProcess(series[1:]...)(newctx, plugin, receiver)
+		})
 	}
 }
 
-type PluginFactory struct {
-	Entry             string
-	StartCommand      string
-	RegisteredModules []*Module
+func CreateModule(name string, installfn Process, uninstallfn Process) *Module {
+	return &Module{
+		Name:             name,
+		InstallProcess:   installfn,
+		UninstallProcess: uninstallfn,
+	}
 }
 
-func (f *PluginFactory) CreatePlugin() *Plugin {
+type Options struct {
+	Entry        string
+	StartCommand string
+	Modules      []*Module
+}
+
+func CreatePlugin(opt *Options) *Plugin {
 	p := New()
-	p.entry = f.Entry
-	p.modules = f.RegisteredModules
-	p.startCommand = f.StartCommand
+	p.entry = opt.Entry
+	p.startCommand = opt.StartCommand
+	p.modules = opt.Modules
 	return p
 }
