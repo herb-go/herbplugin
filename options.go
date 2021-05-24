@@ -9,8 +9,9 @@ func NewLoaction() *Location {
 }
 
 type Trusted struct {
-	Paths   []string
-	Domains []string
+	Paths        []string
+	Domains      []string
+	DangerousAPI bool
 }
 
 func NewTrusted() *Trusted {

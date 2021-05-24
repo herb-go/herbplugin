@@ -1,4 +1,4 @@
-package luaplugin
+package lua51plugin
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
+var output = ""
 var testInitializer = NewInitializer()
 
 func init() {
@@ -41,10 +42,17 @@ func newTestPlugin() *testPlugin {
 }
 func TestCommonModule(t *testing.T) {
 	o := herbplugin.NewOptions()
-	o.Location.Path = "testscripts/params"
+	o.Location.Path = "testscripts"
 	o.Params["testkey"] = "testvalue"
+	output = ""
 	p := newTestPlugin()
+	p.SetPluginDebuger(func(info string) {
+		output = output + info
+	})
 	herbplugin.Lanuch(p, o)
+	if output != "printed" {
+		t.Fatal(output)
+	}
 	defer p.MustClosePlugin()
 	param := p.MustLoadParam("test")
 	if param != "" {

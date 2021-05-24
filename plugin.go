@@ -69,6 +69,7 @@ func (p *BasicPlugin) PluginDebug(info string) {
 func New() *BasicPlugin {
 	p := &BasicPlugin{}
 	p.context = NewContext()
+	p.options = NewOptions()
 	return p
 }
 

@@ -1,4 +1,4 @@
-package luaplugin
+package lua51plugin
 
 import (
 	"github.com/herb-go/herbplugin"
@@ -11,11 +11,13 @@ type Initializer struct {
 	DisableBuiltin bool
 	Namespace      string
 	Modules        []*herbplugin.Module
-	Options        []lua.Options
 }
 
+func (i *Initializer) LuaOptions() []lua.Options {
+	return []lua.Options{{SkipOpenLibs: true}}
+}
 func (i *Initializer) MustApplyInitializer(p *Plugin) {
-	p.LState = lua.NewState(i.Options...)
+	p.LState = lua.NewState(i.LuaOptions()...)
 	p.entry = i.Entry
 	p.startCommand = i.StartCommand
 	p.modules = i.Modules

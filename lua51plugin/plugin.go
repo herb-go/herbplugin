@@ -1,4 +1,4 @@
-package luaplugin
+package lua51plugin
 
 import (
 	"path/filepath"
@@ -8,7 +8,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const PluginType = "lua"
+const PluginType = "lua51"
 const DefaultNamespace = "system"
 
 func New() *Plugin {
@@ -43,7 +43,10 @@ func (p *Plugin) MustInitPlugin() {
 	}
 	herbplugin.Exec(p, processs...)
 	if !p.DisableBuiltin {
-		p.LState.PreloadModule(p.namespace, p.builtinLoader)
+		t := p.LState.NewTable()
+		ft := p.LState.SetFuncs(t, p.Builtin)
+		p.LState.SetGlobal(p.namespace, ft)
+		// p.LState.PreloadModule(p.namespace, p.builtinLoader)
 	}
 }
 func (p *Plugin) MustLoadPlugin(opt *herbplugin.Options) {
@@ -56,11 +59,6 @@ func (p *Plugin) MustLoadPlugin(opt *herbplugin.Options) {
 	}
 }
 
-func (p *Plugin) builtinLoader(L *lua.LState) int {
-	mod := L.SetFuncs(L.NewTable(), p.Builtin)
-	L.Push(mod)
-	return 1
-}
 func (p *Plugin) MustBootPlugin() {
 	p.BasicPlugin.MustBootPlugin()
 	var processs = make([]herbplugin.Process, 0, len(p.modules))

@@ -1,4 +1,4 @@
-package luaplugin
+package lua51plugin
 
 import "testing"
 
