@@ -14,7 +14,7 @@ const DefaultNamespace = "plugin"
 
 func New() *Plugin {
 	return &Plugin{
-		LState: lua.NewState(),
+		BasicPlugin: herbplugin.New(),
 	}
 }
 
@@ -22,7 +22,7 @@ type Plugin struct {
 	sync.Mutex
 	entry  string
 	LState *lua.LState
-	herbplugin.BasicPlugin
+	*herbplugin.BasicPlugin
 	DisableBuiltin bool
 	startCommand   string
 	modules        []*Module
@@ -113,9 +113,11 @@ type Initializer struct {
 	DisableBuiltin bool
 	Namespace      string
 	Modules        []*Module
+	Options        []lua.Options
 }
 
 func (i *Initializer) MustApplyInitializer(p *Plugin) {
+	p.LState = lua.NewState(i.Options...)
 	p.entry = i.Entry
 	p.startCommand = i.StartCommand
 	p.modules = i.Modules

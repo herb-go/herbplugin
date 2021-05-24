@@ -11,6 +11,7 @@ var testInitializer = NewInitializer()
 
 func init() {
 	testInitializer.Entry = "main.lua"
+	testInitializer.StartCommand = "start()"
 	AppendCommonModules(testInitializer)
 }
 
@@ -53,4 +54,5 @@ func TestCommonModule(t *testing.T) {
 	if param != "testvalue" {
 		t.Fatal(param)
 	}
+
 }

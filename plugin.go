@@ -23,7 +23,6 @@ type BasicPlugin struct {
 }
 
 func (p *BasicPlugin) MustInitPlugin() {
-	p.context = NewContext()
 }
 func (p *BasicPlugin) MustClosePlugin() {
 
@@ -66,6 +65,11 @@ func (p *BasicPlugin) SetPluginDebuger(h func(info string)) {
 }
 func (p *BasicPlugin) PluginDebug(info string) {
 	p.context.Debug(info)
+}
+func New() *BasicPlugin {
+	p := &BasicPlugin{}
+	p.context = NewContext()
+	return p
 }
 
 func Lanuch(p Plugin, opt *Options) {
