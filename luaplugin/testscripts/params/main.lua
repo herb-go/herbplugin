@@ -1,4 +1,4 @@
-plugin=require("plugin")
+plugin=require("system")
 function start()
     print("123")
 end
