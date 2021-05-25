@@ -1,5 +1,7 @@
 package herbplugin
 
+import "log"
+
 type Plugin interface {
 	MustInitPlugin()
 	MustLoadPlugin(opt *Options)
@@ -15,9 +17,17 @@ type Plugin interface {
 	PluginPrint(info string)
 }
 
+func LogError(err error) {
+	log.Println(err)
+}
+
+func NopPrinter(info string) {
+}
+
 type BasicPlugin struct {
-	options *Options
-	context *Context
+	options      *Options
+	errorHandler func(err error)
+	printer      func(info string)
 }
 
 func (p *BasicPlugin) MustInitPlugin() {
@@ -47,21 +57,22 @@ func (p *BasicPlugin) GetPluginLocation() *Location {
 }
 
 func (p *BasicPlugin) SetPluginErrorHandler(h func(err error)) {
-	p.context.SetErrorHandler(h)
+	p.errorHandler = h
 }
 func (p *BasicPlugin) HandlePluginError(err error) {
-	p.context.HandleError(err)
+	p.errorHandler(err)
 }
 func (p *BasicPlugin) SetPluginPrinter(h func(info string)) {
-	p.context.SetPrinter(h)
+	p.printer = (h)
 }
 func (p *BasicPlugin) PluginPrint(info string) {
-	p.context.Print(info)
+	p.printer(info)
 }
 func New() *BasicPlugin {
 	p := &BasicPlugin{}
-	p.context = NewContext()
 	p.options = NewOptions()
+	p.errorHandler = LogError
+	p.printer = NopPrinter
 	return p
 }
 
