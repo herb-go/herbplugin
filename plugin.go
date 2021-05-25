@@ -9,12 +9,10 @@ type Plugin interface {
 	GetPluginParam(name string) string
 	GetPluginTrusted() *Trusted
 	GetPluginLocation() *Location
-	GetPluginComponent(name string) (interface{}, bool)
-	RegisterPluginComonent(name string, comonent interface{})
 	SetPluginErrorHandler(func(err error))
 	HandlePluginError(err error)
-	SetPluginDebuger(func(info string))
-	PluginDebug(info string)
+	SetPluginPrinter(func(info string))
+	PluginPrint(info string)
 }
 
 type BasicPlugin struct {
@@ -47,12 +45,6 @@ func (p *BasicPlugin) GetPluginTrusted() *Trusted {
 func (p *BasicPlugin) GetPluginLocation() *Location {
 	return p.options.Location
 }
-func (p *BasicPlugin) GetPluginComponent(name string) (interface{}, bool) {
-	return p.context.GetComponent(name)
-}
-func (p *BasicPlugin) RegisterPluginComonent(name string, component interface{}) {
-	p.context.RegisterComponent(name, component)
-}
 
 func (p *BasicPlugin) SetPluginErrorHandler(h func(err error)) {
 	p.context.SetErrorHandler(h)
@@ -60,11 +52,11 @@ func (p *BasicPlugin) SetPluginErrorHandler(h func(err error)) {
 func (p *BasicPlugin) HandlePluginError(err error) {
 	p.context.HandleError(err)
 }
-func (p *BasicPlugin) SetPluginDebuger(h func(info string)) {
-	p.context.SetDebuger(h)
+func (p *BasicPlugin) SetPluginPrinter(h func(info string)) {
+	p.context.SetPrinter(h)
 }
-func (p *BasicPlugin) PluginDebug(info string) {
-	p.context.Debug(info)
+func (p *BasicPlugin) PluginPrint(info string) {
+	p.context.Print(info)
 }
 func New() *BasicPlugin {
 	p := &BasicPlugin{}

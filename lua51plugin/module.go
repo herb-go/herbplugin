@@ -42,7 +42,7 @@ var ModulePrint = herbplugin.CreateModule(
 		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
 		plugin.LState.SetGlobal("print", plugin.LState.NewFunction(func(L *lua.LState) int {
 			info := L.ToString(1)
-			plugin.PluginDebug(info)
+			plugin.PluginPrint(info)
 			return 0
 		}))
 		next(ctx, plugin)

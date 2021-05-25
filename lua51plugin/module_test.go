@@ -46,7 +46,7 @@ func TestCommonModule(t *testing.T) {
 	o.Params["testkey"] = "testvalue"
 	output = ""
 	p := newTestPlugin()
-	p.SetPluginDebuger(func(info string) {
+	p.SetPluginPrinter(func(info string) {
 		output = output + info
 	})
 	herbplugin.Lanuch(p, o)
