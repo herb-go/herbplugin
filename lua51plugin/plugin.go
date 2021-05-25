@@ -79,9 +79,9 @@ func (p *Plugin) MustBootPlugin() {
 func (p *Plugin) MustClosePlugin() {
 	defer p.LState.Close()
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
-	for k := range p.modules {
-		if p.modules[k].CloseProcess != nil {
-			processs = append(processs, p.modules[k].CloseProcess)
+	for i := len(p.modules) - 1; i >= 0; i-- {
+		if p.modules[i].CloseProcess != nil {
+			processs = append(processs, p.modules[i].CloseProcess)
 		}
 	}
 	herbplugin.Exec(p, processs...)

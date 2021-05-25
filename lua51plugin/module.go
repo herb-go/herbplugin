@@ -75,7 +75,6 @@ func pluginLoaders(p *Plugin) []func(L *lua.LState) int {
 		loLoaderPreload,
 		func(L *lua.LState) int {
 			name := L.CheckString(1)
-			// name = strings.Replace(name, ".", string(os.PathSeparator), -1) + ".lua"
 			name += ".lua"
 			name, err := filepath.Abs(filepath.Join(basepath, name))
 			if err != nil {
