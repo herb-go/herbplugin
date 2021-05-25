@@ -13,7 +13,7 @@ const DefaultNamespace = "system"
 
 func New() *Plugin {
 	return &Plugin{
-		BasicPlugin: herbplugin.New(),
+		Plugin: herbplugin.New(),
 	}
 }
 
@@ -21,7 +21,7 @@ type Plugin struct {
 	sync.RWMutex
 	entry  string
 	LState *lua.LState
-	*herbplugin.BasicPlugin
+	herbplugin.Plugin
 	DisableBuiltin bool
 	startCommand   string
 	modules        []*herbplugin.Module
@@ -33,7 +33,7 @@ func (p *Plugin) PluginType() string {
 	return PluginType
 }
 func (p *Plugin) MustInitPlugin() {
-	p.BasicPlugin.MustInitPlugin()
+	p.Plugin.MustInitPlugin()
 	p.Builtin = map[string]lua.LGFunction{}
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
 	for k := range p.modules {
@@ -50,7 +50,7 @@ func (p *Plugin) MustInitPlugin() {
 	}
 }
 func (p *Plugin) MustLoadPlugin(opt *herbplugin.Options) {
-	p.BasicPlugin.MustLoadPlugin(opt)
+	p.Plugin.MustLoadPlugin(opt)
 	if p.entry != "" {
 		err := p.LState.DoFile(filepath.Join(p.GetPluginLocation().Path, p.entry))
 		if err != nil {
@@ -60,7 +60,7 @@ func (p *Plugin) MustLoadPlugin(opt *herbplugin.Options) {
 }
 
 func (p *Plugin) MustBootPlugin() {
-	p.BasicPlugin.MustBootPlugin()
+	p.Plugin.MustBootPlugin()
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
 	for k := range p.modules {
 		if p.modules[k].BootProcess != nil {
@@ -85,7 +85,7 @@ func (p *Plugin) MustClosePlugin() {
 		}
 	}
 	herbplugin.Exec(p, processs...)
-	p.BasicPlugin.MustClosePlugin()
+	p.Plugin.MustClosePlugin()
 }
 func (p *Plugin) LoadLuaPlugin() *Plugin {
 	return p
