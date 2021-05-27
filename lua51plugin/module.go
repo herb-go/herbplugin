@@ -114,7 +114,7 @@ var ModuleOpenlib = herbplugin.CreateModule(
 		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
 		plugin.LState.OpenLibs()
 
-		if !plugin.GetPluginTrusted().DangerousAPI {
+		if !plugin.PluginAuthorizer().MustAuthorizeDangerousAPI() {
 			for _, v := range safetycommands {
 				err := plugin.LState.DoString(v)
 				if err != nil {

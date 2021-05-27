@@ -9,12 +9,13 @@ type Plugin interface {
 	MustClosePlugin()
 	PluginType() string
 	GetPluginParam(name string) string
-	GetPluginTrusted() *Trusted
 	GetPluginLocation() *Location
 	SetPluginErrorHandler(func(err error))
 	HandlePluginError(err error)
 	SetPluginPrinter(func(info string))
 	PluginPrint(info string)
+	SetPluginAuthorizer(Authorizer)
+	PluginAuthorizer() Authorizer
 }
 
 func LogError(err error) {
@@ -28,6 +29,7 @@ type BasicPlugin struct {
 	options      *Options
 	errorHandler func(err error)
 	printer      func(info string)
+	authorizer   Authorizer
 }
 
 func (p *BasicPlugin) MustInitPlugin() {
@@ -68,11 +70,19 @@ func (p *BasicPlugin) SetPluginPrinter(h func(info string)) {
 func (p *BasicPlugin) PluginPrint(info string) {
 	p.printer(info)
 }
+func (p *BasicPlugin) SetPluginAuthorizer(a Authorizer) {
+	p.authorizer = a
+}
+func (p *BasicPlugin) PluginAuthorizer() Authorizer {
+	return p.authorizer
+}
+
 func New() *BasicPlugin {
 	p := &BasicPlugin{}
 	p.options = NewOptions()
 	p.errorHandler = LogError
 	p.printer = NopPrinter
+	p.authorizer = NewBasicPluginAuthorizer(p)
 	return p
 }
 
