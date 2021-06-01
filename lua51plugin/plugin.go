@@ -49,10 +49,10 @@ func (p *Plugin) MustInitPlugin() {
 		// p.LState.PreloadModule(p.namespace, p.builtinLoader)
 	}
 }
-func (p *Plugin) MustLoadPlugin(opt *herbplugin.Options) {
-	p.Plugin.MustLoadPlugin(opt)
+func (p *Plugin) MustLoadPlugin() {
+	p.Plugin.MustLoadPlugin()
 	if p.entry != "" {
-		err := p.LState.DoFile(filepath.Join(p.GetPluginLocation().Path, p.entry))
+		err := p.LState.DoFile(filepath.Join(p.PluginOptions().GetLocation().Path, p.entry))
 		if err != nil {
 			panic(err)
 		}

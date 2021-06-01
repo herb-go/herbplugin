@@ -28,7 +28,7 @@ var ModuleParam = herbplugin.CreateModule(
 		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
 		plugin.Builtin["getparam"] = func(L *lua.LState) int {
 			name := L.ToString(1)
-			L.Push(lua.LString(plugin.GetPluginParam(name)))
+			L.Push(lua.LString(p.PluginOptions().GetParam(name)))
 			return 1
 		}
 		next(ctx, plugin)
@@ -67,7 +67,7 @@ var safetycommands = []string{
 }
 
 func pluginLoaders(p *Plugin) []func(L *lua.LState) int {
-	basepath, err := filepath.Abs(p.GetPluginLocation().Path)
+	basepath, err := filepath.Abs(p.PluginOptions().GetLocation().Path)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +114,7 @@ var ModuleOpenlib = herbplugin.CreateModule(
 		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
 		plugin.LState.OpenLibs()
 
-		if !plugin.PluginAuthorizer().MustAuthorizeDangerousAPI() {
+		if !plugin.PluginOptions().MustAuthorizeDangerousAPI() {
 			for _, v := range safetycommands {
 				err := plugin.LState.DoString(v)
 				if err != nil {
