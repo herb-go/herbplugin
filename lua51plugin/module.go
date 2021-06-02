@@ -3,7 +3,7 @@ package lua51plugin
 import (
 	"context"
 	"fmt"
-	"path/filepath"
+	"os"
 	"strings"
 
 	"github.com/herb-go/herbplugin"
@@ -66,24 +66,58 @@ var safetycommands = []string{
 	"load=nil",
 }
 
-func pluginLoaders(p *Plugin) []func(L *lua.LState) int {
-	basepath, err := filepath.Abs(p.PluginOptions().GetLocation().Path)
-	if err != nil {
-		panic(err)
+func pluginDoFile(p *Plugin) func(L *lua.LState) int {
+	location := p.PluginOptions().GetLocation()
+	return func(L *lua.LState) int {
+		src := L.ToString(1)
+		top := L.GetTop()
+		cleanpath := location.MustCleanInsidePath(src)
+		if cleanpath == "" {
+			L.RaiseError("%s not in script location", src)
+		}
+		fn, err := L.LoadFile(cleanpath)
+		if err != nil {
+			L.Push(lua.LString(err.Error()))
+			L.Panic(L)
+		}
+		L.Push(fn)
+		L.Call(0, lua.MultRet)
+		return L.GetTop() - top
 	}
+}
+func pluginLoadFile(p *Plugin) func(L *lua.LState) int {
+	location := p.PluginOptions().GetLocation()
+	return func(L *lua.LState) int {
+		src := L.ToString(1)
+		cleanpath := location.MustCleanInsidePath(src)
+		if cleanpath == "" {
+			L.RaiseError("%s not in script location", src)
+		}
+		fn, err := L.LoadFile(cleanpath)
+		if err != nil {
+			L.Push(lua.LNil)
+			L.Push(lua.LString(err.Error()))
+			return 2
+		}
+
+		L.Push(fn)
+		return 1
+	}
+}
+func pluginLoaders(p *Plugin) []func(L *lua.LState) int {
+	location := p.PluginOptions().GetLocation()
 	return []func(L *lua.LState) int{
 		loLoaderPreload,
 		func(L *lua.LState) int {
 			name := L.CheckString(1)
-			name += ".lua"
-			name, err := filepath.Abs(filepath.Join(basepath, name))
-			if err != nil {
-				L.RaiseError(err.Error())
-			}
-			if !strings.HasPrefix(name, basepath) {
+			cleanpath := strings.Replace(name, ".", string(os.PathSeparator), -1)
+			cleanpath += ".lua"
+			cleanpath = location.MustCleanInsidePath(cleanpath)
+
+			if cleanpath == "" {
 				L.RaiseError("%s not in script location", name)
 			}
-			fn, err1 := L.LoadFile(name)
+			fn, err1 := L.LoadFile(cleanpath)
 			if err1 != nil {
 				L.RaiseError(err1.Error())
 			}
@@ -114,7 +148,7 @@ var ModuleOpenlib = herbplugin.CreateModule(
 		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
 		plugin.LState.OpenLibs()
 
-		if !plugin.PluginOptions().MustAuthorizeDangerousAPI() {
+		if !plugin.PluginOptions().MustAuthorizePermission(herbplugin.PermissionDangerousAPI) {
 			for _, v := range safetycommands {
 				err := plugin.LState.DoString(v)
 				if err != nil {
@@ -127,6 +161,8 @@ var ModuleOpenlib = herbplugin.CreateModule(
 				plugin.LState.RawSetInt(loaders, i+1, plugin.LState.NewFunction(loader))
 			}
 			plugin.LState.SetField(plugin.LState.Get(lua.RegistryIndex), "_LOADERS", loaders)
+			plugin.LState.SetGlobal("dofile", plugin.LState.NewFunction(pluginDoFile(plugin)))
+			plugin.LState.SetGlobal("loadfile", plugin.LState.NewFunction(pluginLoadFile(plugin)))
 		}
 		next(ctx, plugin)
 	},

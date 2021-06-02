@@ -6,3 +6,9 @@ function getparam(name)
 end
 
 m=require("module")
+m.Print()
+m=dofile("../testscripts/module.lua")
+m.Print()
+f=loadfile("module.lua")
+m=f()
+m.Print()

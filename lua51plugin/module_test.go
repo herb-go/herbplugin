@@ -50,7 +50,7 @@ func TestCommonModule(t *testing.T) {
 		output = output + info
 	})
 	herbplugin.Lanuch(p, o)
-	if output != "printed" {
+	if output != "success;success;success;printed" {
 		t.Fatal(output)
 	}
 	defer p.MustClosePlugin()
