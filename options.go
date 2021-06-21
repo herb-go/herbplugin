@@ -58,6 +58,44 @@ type Trusted struct {
 	Domains []string
 }
 
+func (t *Trusted) Contains(target *Trusted) bool {
+PATH:
+	for _, targetpath := range target.Paths {
+		for _, v := range t.Paths {
+			if v == targetpath {
+				continue PATH
+			}
+		}
+		return false
+	}
+DOMAIN:
+	for _, targetdomain := range target.Domains {
+		for _, v := range t.Domains {
+			if v == targetdomain {
+				continue DOMAIN
+			}
+		}
+		return false
+	}
+	return true
+}
+func (t *Trusted) MustAuthorizeDomain(domain string) bool {
+	for k := range t.Domains {
+		if MatchDomain(t.Domains[k], domain) {
+			return true
+		}
+	}
+	return false
+}
+func (t *Trusted) MustAuthorizePath(path string) bool {
+	for _, v := range t.Paths {
+		if v != "" && strings.HasPrefix(path, v) {
+			return true
+		}
+	}
+	return false
+}
+
 func NewTrusted() *Trusted {
 	return &Trusted{}
 }
@@ -76,29 +114,14 @@ func (o *PlainOptions) GetParam(name string) string {
 	return o.Params[name]
 }
 func (o *PlainOptions) MustAuthorizeDomain(domain string) bool {
-	for k := range o.Trusted.Domains {
-		if MatchDomain(o.Trusted.Domains[k], domain) {
-			return true
-		}
-	}
-	return false
+	return o.Trusted.MustAuthorizeDomain(domain)
 }
 func (o *PlainOptions) MustAuthorizePath(path string) bool {
-	for _, v := range o.Trusted.Paths {
-		if v != "" && strings.HasPrefix(path, v) {
-			return true
-		}
-	}
-	return false
+	return o.Trusted.MustAuthorizePath(path)
 }
 
 func (o *PlainOptions) MustAuthorizePermission(permission string) bool {
-	for k := range o.Permissions {
-		if o.Permissions[k] == permission {
-			return true
-		}
-	}
-	return false
+	return MustAuthorizePermission(o.Permissions, permission)
 }
 
 func NewOptions() *PlainOptions {
@@ -107,4 +130,26 @@ func NewOptions() *PlainOptions {
 		Params:   map[string]string{},
 		Trusted:  NewTrusted(),
 	}
+}
+
+func MustAuthorizePermission(permissions []string, permission string) bool {
+	for k := range permissions {
+		if permissions[k] == permission {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsPermissions(src []string, target []string) bool {
+PERMISSION:
+	for _, targetpermission := range target {
+		for _, v := range src {
+			if v == targetpermission {
+				continue PERMISSION
+			}
+		}
+		return false
+	}
+	return true
 }
