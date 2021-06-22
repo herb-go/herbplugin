@@ -86,6 +86,7 @@ func (p *Plugin) MustClosePlugin() {
 	}
 	herbplugin.Exec(p, processs...)
 	p.Plugin.MustClosePlugin()
+	p.LState = nil
 }
 func (p *Plugin) LoadLuaPlugin() *Plugin {
 	return p
