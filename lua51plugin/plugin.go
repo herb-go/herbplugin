@@ -46,7 +46,6 @@ func (p *Plugin) MustInitPlugin() {
 		t := p.LState.NewTable()
 		ft := p.LState.SetFuncs(t, p.Builtin)
 		p.LState.SetGlobal(p.namespace, ft)
-		// p.LState.PreloadModule(p.namespace, p.builtinLoader)
 	}
 }
 func (p *Plugin) MustLoadPlugin() {
