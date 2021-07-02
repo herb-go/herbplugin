@@ -14,7 +14,7 @@ type Initializer struct {
 }
 
 func (i *Initializer) LuaOptions() []lua.Options {
-	return []lua.Options{{SkipOpenLibs: true}}
+	return []lua.Options{{SkipOpenLibs: false}}
 }
 func (i *Initializer) MustApplyInitializer(p *Plugin) {
 	p.LState = lua.NewState(i.LuaOptions()...)
