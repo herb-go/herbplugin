@@ -165,15 +165,5 @@ var ModuleOpenlib = herbplugin.CreateModule(
 		next(ctx, plugin)
 	},
 	nil,
-	func(ctx context.Context, p herbplugin.Plugin, next func(ctx context.Context, plugin herbplugin.Plugin)) {
-		plugin := p.(LuaPluginLoader).LoadLuaPlugin()
-		plugin.LState.OpenLibs()
-
-		if !plugin.PluginOptions().MustAuthorizePermission(herbplugin.PermissionDangerousAPI) {
-			plugin.LState.SetField(plugin.LState.Get(lua.RegistryIndex), "_LOADERS", lua.LNil)
-			plugin.LState.SetGlobal("dofile", lua.LNil)
-			plugin.LState.SetGlobal("loadfile", lua.LNil)
-		}
-		next(ctx, plugin)
-	},
+	nil,
 )
