@@ -88,6 +88,7 @@ func (t *Trusted) MustAuthorizeDomain(domain string) bool {
 	return false
 }
 func (t *Trusted) MustAuthorizePath(path string) bool {
+	path = filepath.Clean(path)
 	for _, v := range t.Paths {
 		if v != "" && strings.HasPrefix(path, v) {
 			return true
