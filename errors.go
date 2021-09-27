@@ -15,6 +15,13 @@ func NewUnauthorizePathError(path string) error {
 		Path: path,
 	}
 }
+func IsUnauthorizePathError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(*UnauthorizePathError)
+	return ok
+}
 
 type UnauthorizeDomainError struct {
 	Domain string
@@ -29,6 +36,13 @@ func NewUnauthorizeDomainError(domain string) error {
 		Domain: domain,
 	}
 }
+func IsUnauthorizeDomainError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(*UnauthorizeDomainError)
+	return ok
+}
 
 type UnauthorizePermissionError struct {
 	Permission string
@@ -36,6 +50,14 @@ type UnauthorizePermissionError struct {
 
 func (e *UnauthorizePermissionError) Error() string {
 	return fmt.Sprintf("herbplugin: unauthorize prmission %s", e.Permission)
+}
+
+func IsUnauthorizePermissionError(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := err.(*UnauthorizePermissionError)
+	return ok
 }
 
 func NewUnauthorizePermissionError(prmission string) error {
