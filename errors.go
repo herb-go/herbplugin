@@ -49,7 +49,7 @@ type UnauthorizePermissionError struct {
 }
 
 func (e *UnauthorizePermissionError) Error() string {
-	return fmt.Sprintf("herbplugin: unauthorize prmission %s", e.Permission)
+	return fmt.Sprintf("herbplugin: unauthorize permission %s", e.Permission)
 }
 
 func IsUnauthorizePermissionError(err error) bool {
