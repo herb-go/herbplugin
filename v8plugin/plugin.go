@@ -53,7 +53,7 @@ type Plugin struct {
 	startCommand   string
 	modules        []*herbplugin.Module
 	namespace      string
-	Builtin        map[string]func(info *v8.FunctionCallbackInfo) *v8.Value
+	Builtin        map[string]v8.FunctionCallback
 }
 
 func (p *Plugin) PluginType() string {
@@ -61,7 +61,7 @@ func (p *Plugin) PluginType() string {
 }
 func (p *Plugin) MustInitPlugin() {
 	p.Plugin.MustInitPlugin()
-	p.Builtin = map[string]func(info *v8.FunctionCallbackInfo) *v8.Value{}
+	p.Builtin = map[string]v8.FunctionCallback{}
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
 	for k := range p.modules {
 		if p.modules[k].InitProcess != nil {
