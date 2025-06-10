@@ -99,6 +99,11 @@ func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
 	}
 	return result
 }
+func WrapCallback(fn v8.FunctionCallback) v8.FunctionCallback {
+	return func(info *v8.FunctionCallbackInfo) *v8.Value {
+		return fn(info)
+	}
+}
 func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, fn v8.FunctionCallback) {
 	if obj == nil {
 		return
