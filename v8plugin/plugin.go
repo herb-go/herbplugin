@@ -43,19 +43,12 @@ func MustObjectTemplateToValue(obj *v8.ObjectTemplate, ctx *v8.Context) *v8.Valu
 	}
 	return value.Value
 }
-func MustNewArray(ctx *v8.Context, values ...interface{}) *v8.Value {
-	val, err := ctx.RunScript("return (args)=>[..args]", "")
+func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
+	array, err := ctx.Global().Get("Array")
 	if err != nil {
 		panic(err)
 	}
-	args := make([]v8.Valuer, len(values))
-	for i, v := range values {
-		args[i], err = v8.NewValue(ctx.Isolate(), v)
-		if err != nil {
-			panic(err)
-		}
-	}
-	fn, err := val.AsFunction()
+	fn, err := array.AsFunction()
 	if err != nil {
 		panic(err)
 	}
