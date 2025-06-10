@@ -31,6 +31,8 @@ func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
 	switch v := value.(type) {
 	case *v8.Object:
 		return v.Value
+	case *v8.Value:
+		return v
 	case int:
 		value = int64(v)
 	}
