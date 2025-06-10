@@ -28,18 +28,17 @@ func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
 	return args[idx]
 }
 func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
-	switch value.(type) {
+	switch v := value.(type) {
 	case *v8.Object:
-		v := value.(v8.Object)
 		return v.Value
 	case int:
-		value = value.(int64)
+		value = int64(v)
 	}
-	v, err := v8.NewValue(ctx.Isolate(), value)
+	val, err := v8.NewValue(ctx.Isolate(), value)
 	if err != nil {
 		panic(err)
 	}
-	return v
+	return val
 }
 func MustObjectTemplateToValue(ctx *v8.Context, obj *v8.ObjectTemplate) *v8.Value {
 	if obj == nil {
