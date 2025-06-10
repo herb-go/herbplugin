@@ -1,4 +1,4 @@
-module herbplugin
+module github.com/herb-go/herbplugin
 
 go 1.20
 
