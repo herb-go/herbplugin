@@ -27,6 +27,10 @@ func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
 	return args[idx]
 }
 func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
+	switch value.(type) {
+	case int:
+		value = value.(int64)
+	}
 	v, err := v8.NewValue(ctx.Isolate(), value)
 	if err != nil {
 		panic(err)
@@ -57,6 +61,16 @@ func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
 		panic(err)
 	}
 	return result
+}
+func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, fn v8.FunctionCallback) {
+	if obj == nil {
+		return
+	}
+	method := v8.NewFunctionTemplate(ctx.Isolate(), fn)
+	if method == nil {
+		panic("Failed to create function template")
+	}
+	obj.Set(name, method)
 }
 
 type Plugin struct {
