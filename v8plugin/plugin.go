@@ -29,6 +29,9 @@ func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
 }
 func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
 	switch value.(type) {
+	case *v8.Object:
+		v := value.(v8.Object)
+		return v.Value
 	case int:
 		value = value.(int64)
 	}
@@ -57,7 +60,7 @@ func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
 	if err != nil {
 		panic(err)
 	}
-	result, err := fn.Call(ctx.Global(), args...)
+	result, err := fn.Call(array, args...)
 	if err != nil {
 		panic(err)
 	}
