@@ -1,11 +1,11 @@
-package jsplugin
+package v8plugin
 
 import (
 	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/dop251/goja"
+	v8 "rogchap.com/v8go"
 
 	"github.com/herb-go/herbplugin"
 )
@@ -19,16 +19,34 @@ func New() *Plugin {
 	}
 }
 
+func MustGetArg(ctx *v8.Context, args []*v8.Value, idx int) *v8.Value {
+	if idx < 0 || idx >= len(args) {
+		return v8.Null(ctx.Isolate())
+	}
+	return args[idx]
+}
+
+func MustObjectTemplateToValue(obj *v8.ObjectTemplate, ctx *v8.Context) *v8.Value {
+	if obj == nil {
+		return v8.Null(ctx.Isolate())
+	}
+	value, err := obj.NewInstance(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return value.Value
+}
+
 type Plugin struct {
 	sync.RWMutex
 	entry   string
-	Runtime *goja.Runtime
+	Runtime *v8.Context
 	herbplugin.Plugin
 	DisableBuiltin bool
 	startCommand   string
 	modules        []*herbplugin.Module
 	namespace      string
-	Builtin        map[string]func(call goja.FunctionCall) goja.Value
+	Builtin        map[string]func(info *v8.FunctionCallbackInfo) *v8.Value
 }
 
 func (p *Plugin) PluginType() string {
@@ -36,16 +54,23 @@ func (p *Plugin) PluginType() string {
 }
 func (p *Plugin) MustInitPlugin() {
 	p.Plugin.MustInitPlugin()
-	p.Builtin = map[string]func(call goja.FunctionCall) goja.Value{}
+	p.Builtin = map[string]func(info *v8.FunctionCallbackInfo) *v8.Value{}
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
 	for k := range p.modules {
 		if p.modules[k].InitProcess != nil {
 			processs = append(processs, p.modules[k].InitProcess)
 		}
 	}
+	builtin, err := v8.NewObjectTemplate(p.Runtime.Isolate()).NewInstance(p.Runtime)
+	if err != nil {
+		panic(err)
+	}
+	for key, fn := range p.Builtin {
+		builtin.Set(key, fn)
+	}
 	herbplugin.Exec(p, processs...)
 	if !p.DisableBuiltin {
-		err := p.Runtime.Set(p.namespace, p.Builtin)
+		err := p.Runtime.Global().Set(p.namespace, builtin)
 		if err != nil {
 			panic(err)
 		}
@@ -75,7 +100,7 @@ func (p *Plugin) MustBootPlugin() {
 	}
 	herbplugin.Exec(p, processs...)
 	if p.startCommand != "" {
-		_, err := p.Runtime.RunString(p.startCommand)
+		_, err := p.Runtime.RunScript(p.startCommand, "")
 		if err != nil {
 			panic(err)
 		}
