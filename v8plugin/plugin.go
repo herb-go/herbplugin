@@ -1,6 +1,7 @@
 package v8plugin
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -59,6 +60,39 @@ func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
 	result, err := fn.Call(ctx.Global(), args...)
 	if err != nil {
 		panic(err)
+	}
+	return result
+}
+func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
+	if !val.IsArray() {
+		panic(errors.New("Value is not an array"))
+	}
+	obj, err := val.AsObject()
+	if err != nil {
+		panic(err)
+	}
+	length, err := obj.Get("length")
+	if err != nil {
+		panic(err)
+	}
+	l := length.Int32()
+	if l < 0 {
+		panic(errors.New("array length is negative"))
+	}
+	result := make([]*v8.Value, l)
+	for i := int32(0); i < l; i++ {
+		result[int(i)], err = obj.GetIdx(uint32(i))
+		if err != nil {
+			panic(err)
+		}
+	}
+	return result
+}
+func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
+	values := MustConvertToArray(ctx, val)
+	result := make([]string, len(values))
+	for i, v := range values {
+		result[i] = v.String()
 	}
 	return result
 }
