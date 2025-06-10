@@ -19,13 +19,20 @@ func New() *Plugin {
 	}
 }
 
-func MustGetArg(ctx *v8.Context, args []*v8.Value, idx int) *v8.Value {
+func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
+	args := call.Args()
 	if idx < 0 || idx >= len(args) {
-		return v8.Null(ctx.Isolate())
+		return v8.Null(call.Context().Isolate())
 	}
 	return args[idx]
 }
-
+func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
+	v, err := v8.NewValue(ctx.Isolate(), value)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 func MustObjectTemplateToValue(obj *v8.ObjectTemplate, ctx *v8.Context) *v8.Value {
 	if obj == nil {
 		return v8.Null(ctx.Isolate())
