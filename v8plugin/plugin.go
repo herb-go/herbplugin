@@ -106,6 +106,13 @@ func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, f
 	}
 	obj.Set(name, method)
 }
+func MustGetItem(obj *v8.Object, name string) *v8.Value {
+	value, err := obj.Get(name)
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
 
 type Plugin struct {
 	sync.RWMutex
