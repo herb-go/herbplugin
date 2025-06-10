@@ -38,7 +38,7 @@ func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
 	}
 	return v
 }
-func MustObjectTemplateToValue(obj *v8.ObjectTemplate, ctx *v8.Context) *v8.Value {
+func MustObjectTemplateToValue(ctx *v8.Context, obj *v8.ObjectTemplate) *v8.Value {
 	if obj == nil {
 		return v8.Null(ctx.Isolate())
 	}
@@ -65,7 +65,7 @@ func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
 }
 func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
 	if !val.IsArray() {
-		panic(errors.New("Value is not an array"))
+		panic(errors.New("value is not an array"))
 	}
 	obj, err := val.AsObject()
 	if err != nil {
