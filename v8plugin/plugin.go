@@ -90,7 +90,7 @@ func (p *Plugin) MustLoadPlugin() {
 		if err != nil {
 			panic(err)
 		}
-		_, err = p.Runtime.RunScript(p.entry, string(data))
+		_, err = p.Runtime.RunScript(string(data), p.entry)
 		if err != nil {
 			panic(err)
 		}
