@@ -33,6 +33,18 @@ func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
 		return v.Value
 	case *v8.Value:
 		return v
+	case []*v8.Value:
+		return MustNewArray(ctx, v)
+	case []string:
+		arr := make([]*v8.Value, len(v))
+		for k, val := range v {
+			arr[k] = MustNewValue(ctx, val)
+		}
+		result := MustNewArray(ctx, arr)
+		for _, val := range arr {
+			val.Release()
+		}
+		return result
 	case int:
 		value = int64(v)
 	}
