@@ -77,7 +77,6 @@ func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
 	}
 
 	obj, err := val.AsObject()
-	defer obj.Release()
 	if err != nil {
 		panic(err)
 	}
@@ -104,7 +103,6 @@ func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
 	result := make([]string, len(values))
 	for i, v := range values {
 		result[i] = v.String()
-		v.Release()
 	}
 	return result
 }
