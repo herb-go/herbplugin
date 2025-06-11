@@ -2,7 +2,7 @@ package v8plugin
 
 import (
 	"github.com/herb-go/herbplugin"
-	v8 "rogchap.com/v8go"
+	v8 "github.com/herb-go/v8go"
 )
 
 type Initializer struct {

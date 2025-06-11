@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	v8 "rogchap.com/v8go"
+	v8 "github.com/herb-go/v8go"
 
 	"github.com/herb-go/herbplugin"
 )
