@@ -52,7 +52,7 @@ func MustObjectTemplateToValue(ctx *v8.Context, obj *v8.ObjectTemplate) *v8.Valu
 	}
 	return value.Value
 }
-func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
+func MustNewArray(ctx *v8.Context, args []*v8.Value) *v8.Value {
 	array, err := ctx.Global().Get("Array")
 	if err != nil {
 		panic(err)
@@ -61,21 +61,29 @@ func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
 	if err != nil {
 		panic(err)
 	}
-	result, err := fn.Call(array, args...)
+	fnargs := make([]v8.Valuer, len(args))
+	for i, v := range args {
+		fnargs[i] = v
+	}
+	result, err := fn.Call(array, fnargs...)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
+	defer val.Release()
 	if !val.IsArray() {
 		panic(errors.New("value is not an array"))
 	}
+
 	obj, err := val.AsObject()
+	defer obj.Release()
 	if err != nil {
 		panic(err)
 	}
 	length, err := obj.Get("length")
+	defer length.Release()
 	if err != nil {
 		panic(err)
 	}
@@ -93,10 +101,12 @@ func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
 	return result
 }
 func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
+	defer val.Release()
 	values := MustConvertToArray(ctx, val)
 	result := make([]string, len(values))
 	for i, v := range values {
 		result[i] = v.String()
+		v.Release()
 	}
 	return result
 }
