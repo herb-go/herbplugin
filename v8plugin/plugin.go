@@ -72,6 +72,9 @@ func MustNewArray(ctx *v8.Context, args []*v8.Value) *v8.Value {
 	return result
 }
 func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
+	if val.IsNull() || val.IsUndefined() {
+		return []*v8.Value{}
+	}
 	if !val.IsArray() {
 		panic(errors.New("value is not an array"))
 	}
