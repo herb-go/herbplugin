@@ -101,7 +101,6 @@ func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
 	return result
 }
 func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
-	defer val.Release()
 	values := MustConvertToArray(ctx, val)
 	result := make([]string, len(values))
 	for i, v := range values {
