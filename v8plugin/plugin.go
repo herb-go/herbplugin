@@ -53,7 +53,10 @@ func MustObjectTemplateToValue(ctx *v8.Context, obj *v8.ObjectTemplate) *v8.Valu
 	return value.Value
 }
 func MustNewArray(ctx *v8.Context, args []*v8.Value) *v8.Value {
-	array, err := ctx.Global().Get("Array")
+	global := ctx.Global()
+	defer global.Release()
+	array, err := global.Get("Array")
+	defer array.Release()
 	if err != nil {
 		panic(err)
 	}
@@ -165,7 +168,9 @@ func (p *Plugin) MustInitPlugin() {
 	}
 	herbplugin.Exec(p, processs...)
 	if !p.DisableBuiltin {
-		err := p.Runtime.Global().Set(p.namespace, builtin)
+		global := p.Runtime.Global()
+		defer global.Release()
+		err := global.Set(p.namespace, builtin)
 		if err != nil {
 			panic(err)
 		}
