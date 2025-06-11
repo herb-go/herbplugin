@@ -134,6 +134,21 @@ func MustGetItem(obj *v8.Object, name string) *v8.Value {
 	}
 	return value
 }
+func MustSetItem(ctx *v8.Context, obj *v8.Object, name string, value interface{}) {
+	if obj == nil {
+		return
+	}
+	if value == nil {
+		obj.Delete(name)
+	} else {
+		val := MustNewValue(ctx, value)
+		defer val.Release()
+		err := obj.Set(name, value)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 type Plugin struct {
 	sync.RWMutex
