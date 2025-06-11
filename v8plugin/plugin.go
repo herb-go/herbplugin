@@ -204,8 +204,8 @@ func (p *Plugin) MustClosePlugin() {
 	p.modules = nil
 	p.Builtin = nil
 	p.Plugin.MustClosePlugin()
-	p.Runtime.Isolate().Dispose()
 	p.Runtime.Close()
+	p.Runtime.Isolate().Dispose()
 }
 func (p *Plugin) LoadJsPlugin() *Plugin {
 	return p
