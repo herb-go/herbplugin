@@ -1,7 +1,6 @@
 package v8plugin
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -27,108 +26,34 @@ func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
 	}
 	return args[idx]
 }
-func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
-	switch v := value.(type) {
-	case *v8.Object:
-		return v.Value
-	case *v8.Value:
-		return v
-	case []*v8.Value:
-		return MustNewArray(ctx, v)
-	case []string:
-		arr := make([]*v8.Value, len(v))
-		for k, val := range v {
-			arr[k] = MustNewValue(ctx, val)
-		}
-		result := MustNewArray(ctx, arr)
-		for _, val := range arr {
-			val.Release()
-		}
-		return result
-	case int:
-		value = int64(v)
-	}
-	val, err := v8.NewValue(ctx.Isolate(), value)
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-func MustObjectTemplateToValue(ctx *v8.Context, obj *v8.ObjectTemplate) *v8.Value {
-	if obj == nil {
-		return v8.Null(ctx.Isolate())
-	}
-	value, err := obj.NewInstance(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return value.Value
-}
-func MustNewArray(ctx *v8.Context, args []*v8.Value) *v8.Value {
-	global := ctx.Global()
-	defer global.Release()
-	array, err := global.Get("Array")
-	defer array.Release()
-	if err != nil {
-		panic(err)
-	}
-	fn, err := array.AsFunction()
-	if err != nil {
-		panic(err)
-	}
-	fnargs := make([]v8.Valuer, len(args))
-	for i, v := range args {
-		fnargs[i] = v
-	}
-	result, err := fn.Call(array, fnargs...)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-func MustConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
-	if val.IsNull() || val.IsUndefined() {
-		return []*v8.Value{}
-	}
-	if !val.IsArray() {
-		panic(errors.New("value is not an array"))
-	}
 
-	obj, err := val.AsObject()
-	if err != nil {
-		panic(err)
-	}
-	length, err := obj.Get("length")
-	defer length.Release()
-	if err != nil {
-		panic(err)
-	}
-	l := length.Int32()
-	if l < 0 {
-		panic(errors.New("array length is negative"))
-	}
-	result := make([]*v8.Value, l)
-	for i := int32(0); i < l; i++ {
-		result[int(i)], err = obj.GetIdx(uint32(i))
-		if err != nil {
-			panic(err)
-		}
-	}
-	return result
-}
-func MustConvertToStringArray(ctx *v8.Context, val *v8.Value) []string {
-	values := MustConvertToArray(ctx, val)
-	result := make([]string, len(values))
-	for i, v := range values {
-		result[i] = v.String()
-	}
-	return result
-}
-func WrapCallback(fn v8.FunctionCallback) v8.FunctionCallback {
-	return func(info *v8.FunctionCallbackInfo) *v8.Value {
-		return fn(info)
-	}
-}
+//	func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
+//		switch v := value.(type) {
+//		case *v8.Object:
+//			return v.Value
+//		case *v8.Value:
+//			return v
+//		case []*v8.Value:
+//			return MustNewArray(ctx, v)
+//		case []string:
+//			arr := make([]*v8.Value, len(v))
+//			for k, val := range v {
+//				arr[k] = MustNewValue(ctx, val)
+//			}
+//			result := MustNewArray(ctx, arr)
+//			for _, val := range arr {
+//				val.Release()
+//			}
+//			return result
+//		case int:
+//			value = int64(v)
+//		}
+//		val, err := v8.NewValue(ctx.Isolate(), value)
+//		if err != nil {
+//			panic(err)
+//		}
+//		return val
+//	}
 func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, fn v8.FunctionCallback) {
 	if obj == nil {
 		return
@@ -138,28 +63,6 @@ func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, f
 		panic("Failed to create function template")
 	}
 	obj.Set(name, method)
-}
-func MustGetItem(obj *v8.Object, name string) *v8.Value {
-	value, err := obj.Get(name)
-	if err != nil {
-		panic(err)
-	}
-	return value
-}
-func MustSetItem(ctx *v8.Context, obj *v8.Object, name string, value interface{}) {
-	if obj == nil {
-		return
-	}
-	if value == nil {
-		obj.Delete(name)
-	} else {
-		val := MustNewValue(ctx, value)
-		defer val.Release()
-		err := obj.Set(name, value)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 type Plugin struct {
