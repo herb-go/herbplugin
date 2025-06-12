@@ -17,6 +17,40 @@ type Manager struct {
 	managed []Releaser
 }
 
+func Return(call *v8.FunctionCallbackInfo, value interface{}) *v8.Value {
+	call.Release()
+	if value == nil {
+		return nil
+	}
+	return mustNewValue(call.Context(), value)
+}
+func mustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
+	switch v := value.(type) {
+	case *v8.Object:
+		return v.Value
+	case *v8.Value:
+		return v
+	// case []*v8.Value:
+	// 	return MustNewArray(m.Context, v)
+	// case []string:
+	// 	arr := make([]*v8.Value, len(v))
+	// 	for k, val := range v {
+	// 		arr[k] = MustNewValue(m.Context, val)
+	// 	}
+	// 	result := MustNewArray(m.Context, arr)
+	// 	for _, val := range arr {
+	// 		val.Release()
+	// 	}
+	// 	return result
+	case int:
+		value = int64(v)
+	}
+	val, err := v8.NewValue(ctx.Isolate(), value)
+	if err != nil {
+		panic(err)
+	}
+	return val
+}
 func NewManager(ctx *v8.Context) *Manager {
 	return &Manager{
 		Context: ctx,
@@ -40,35 +74,7 @@ func (m *Manager) manage(v *v8.Value) *Value {
 	}
 }
 func (m *Manager) newValue(value interface{}) *v8.Value {
-	switch v := value.(type) {
-	case *v8.Object:
-		return v.Value
-	case *v8.Value:
-		return v
-	// case []*v8.Value:
-	// 	return MustNewArray(m.Context, v)
-	// case []string:
-	// 	arr := make([]*v8.Value, len(v))
-	// 	for k, val := range v {
-	// 		arr[k] = MustNewValue(m.Context, val)
-	// 	}
-	// 	result := MustNewArray(m.Context, arr)
-	// 	for _, val := range arr {
-	// 		val.Release()
-	// 	}
-	// 	return result
-	case int:
-		value = int64(v)
-	}
-	val, err := v8.NewValue(m.Context.Isolate(), value)
-	if err != nil {
-		panic(err)
-	}
-	return val
-
-}
-func (m *Manager) Return(value interface{}) *v8.Value {
-	return m.newValue(value)
+	return mustNewValue(m.Context, value)
 }
 func (m *Manager) NewValue(value interface{}) *Value {
 	return m.manage(m.newValue(value))
