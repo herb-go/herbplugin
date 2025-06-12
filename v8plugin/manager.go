@@ -50,7 +50,6 @@ func MustCall(fn *v8.Value, args ...v8.Valuer) *v8.Value {
 	return result
 }
 func MustReturn(call *v8.FunctionCallbackInfo, value interface{}) *v8.Value {
-	call.Release()
 	if value == nil {
 		return nil
 	}
