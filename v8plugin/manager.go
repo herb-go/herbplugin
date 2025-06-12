@@ -67,7 +67,7 @@ func (m *Manager) newValue(value interface{}) *v8.Value {
 	return val
 
 }
-func (m *Manager) NewResult(value interface{}) *v8.Value {
+func (m *Manager) Return(value interface{}) *v8.Value {
 	return m.newValue(value)
 }
 func (m *Manager) NewValue(value interface{}) *Value {
