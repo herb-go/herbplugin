@@ -2,7 +2,7 @@ package v8plugin
 
 import (
 	"github.com/herb-go/herbplugin"
-	v8 "github.com/herb-go/v8go"
+	"github.com/jarlyyn/v8js"
 )
 
 type Initializer struct {
@@ -14,7 +14,7 @@ type Initializer struct {
 }
 
 func (i *Initializer) MustApplyInitializer(p *Plugin) {
-	p.Runtime = v8.NewContext()
+	p.Runtime = v8js.NewContext()
 	p.entry = i.Entry
 	p.startCommand = i.StartCommand
 	p.modules = i.Modules

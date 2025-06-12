@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	v8 "github.com/herb-go/v8go"
+	"github.com/jarlyyn/v8js"
 
 	"github.com/herb-go/herbplugin"
 )
@@ -19,74 +19,16 @@ func New() *Plugin {
 	}
 }
 
-func MustGetArg(call *v8.FunctionCallbackInfo, idx int) *v8.Value {
-	args := call.Args()
-	if idx < 0 || idx >= len(args) {
-		return v8.Null(call.Context().Isolate())
-	}
-	return args[idx]
-}
-
-//	func MustNewValue(ctx *v8.Context, value interface{}) *v8.Value {
-//		switch v := value.(type) {
-//		case *v8.Object:
-//			return v.Value
-//		case *v8.Value:
-//			return v
-//		case []*v8.Value:
-//			return MustNewArray(ctx, v)
-//		case []string:
-//			arr := make([]*v8.Value, len(v))
-//			for k, val := range v {
-//				arr[k] = MustNewValue(ctx, val)
-//			}
-//			result := MustNewArray(ctx, arr)
-//			for _, val := range arr {
-//				val.Release()
-//			}
-//			return result
-//		case int:
-//			value = int64(v)
-//		}
-//		val, err := v8.NewValue(ctx.Isolate(), value)
-//		if err != nil {
-//			panic(err)
-//		}
-//		return val
-//	}
-func MustSetObjectMethod(ctx *v8.Context, obj *v8.ObjectTemplate, name string, fn v8.FunctionCallback) {
-	if obj == nil {
-		return
-	}
-	method := v8.NewFunctionTemplate(ctx.Isolate(), fn)
-	if method == nil {
-		panic("Failed to create function template")
-	}
-	obj.Set(name, method)
-}
-func MustValue(v *v8.Value, err error) *v8.Value {
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-func MustObject(v *v8.Object, err error) *v8.Object {
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
 type Plugin struct {
 	sync.RWMutex
 	entry   string
-	Runtime *v8.Context
+	Runtime *v8js.Context
 	herbplugin.Plugin
 	DisableBuiltin bool
 	startCommand   string
 	modules        []*herbplugin.Module
 	namespace      string
-	Builtin        map[string]v8.FunctionCallback
+	Builtin        map[string]*v8js.JsValue
 }
 
 func (p *Plugin) PluginType() string {
@@ -94,28 +36,22 @@ func (p *Plugin) PluginType() string {
 }
 func (p *Plugin) MustInitPlugin() {
 	p.Plugin.MustInitPlugin()
-	p.Builtin = map[string]v8.FunctionCallback{}
+	p.Builtin = map[string]*v8js.JsValue{}
 	var processs = make([]herbplugin.Process, 0, len(p.modules))
 	for k := range p.modules {
 		if p.modules[k].InitProcess != nil {
 			processs = append(processs, p.modules[k].InitProcess)
 		}
 	}
-	builtin, err := v8.NewObjectTemplate(p.Runtime.Isolate()).NewInstance(p.Runtime)
-	if err != nil {
-		panic(err)
-	}
+	builtin := p.Runtime.NewObject()
 	for key, fn := range p.Builtin {
 		builtin.Set(key, fn)
 	}
 	herbplugin.Exec(p, processs...)
 	if !p.DisableBuiltin {
 		global := p.Runtime.Global()
-		defer global.Release()
-		err := global.Set(p.namespace, builtin)
-		if err != nil {
-			panic(err)
-		}
+		global.Set(p.namespace, builtin)
+
 	}
 }
 func (p *Plugin) MustLoadPlugin() {
@@ -125,10 +61,7 @@ func (p *Plugin) MustLoadPlugin() {
 		if err != nil {
 			panic(err)
 		}
-		_, err = p.Runtime.RunScript(string(data), p.entry)
-		if err != nil {
-			panic(err)
-		}
+		p.Runtime.RunScript(string(data), p.entry)
 	}
 }
 
@@ -142,10 +75,7 @@ func (p *Plugin) MustBootPlugin() {
 	}
 	herbplugin.Exec(p, processs...)
 	if p.startCommand != "" {
-		_, err := p.Runtime.RunScript(p.startCommand, "")
-		if err != nil {
-			panic(err)
-		}
+		p.Runtime.RunScript(p.startCommand, "")
 	}
 }
 
@@ -160,8 +90,7 @@ func (p *Plugin) MustClosePlugin() {
 	p.modules = nil
 	p.Builtin = nil
 	p.Plugin.MustClosePlugin()
-	p.Runtime.Close()
-	p.Runtime.Isolate().Dispose()
+	p.Runtime.CloseAndDispose()
 }
 func (p *Plugin) LoadJsPlugin() *Plugin {
 	return p
