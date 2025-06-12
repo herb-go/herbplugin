@@ -70,6 +70,12 @@ func MustValue(v *v8.Value, err error) *v8.Value {
 	}
 	return v
 }
+func MustObject(v *v8.Object, err error) *v8.Object {
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
 
 type Plugin struct {
 	sync.RWMutex
