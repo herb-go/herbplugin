@@ -17,7 +17,7 @@ type Manager struct {
 	managed []Releaser
 }
 
-func Return(call *v8.FunctionCallbackInfo, value interface{}) *v8.Value {
+func MustReturn(call *v8.FunctionCallbackInfo, value interface{}) *v8.Value {
 	call.Release()
 	if value == nil {
 		return nil
