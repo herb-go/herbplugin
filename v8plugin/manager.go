@@ -9,14 +9,46 @@ import (
 type Releaser interface {
 	Release()
 }
-type Value struct {
-	*v8.Value
-}
 type Manager struct {
 	Context *v8.Context
 	managed []Releaser
 }
 
+func MustStringArray(ctx *v8.Context, args []string) *v8.Value {
+	arr := make([]v8.Valuer, len(args))
+
+	for i, v := range args {
+		var item = mustNewValue(ctx, v)
+		arr[i] = item
+		defer item.Release()
+	}
+	return MustNewArray(ctx, arr)
+}
+func MustNewArray(ctx *v8.Context, args []v8.Valuer) *v8.Value {
+	global := ctx.Global()
+	defer global.Release()
+	array, err := global.Get("Array")
+	defer array.Release()
+	if err != nil {
+		panic(err)
+	}
+	fnargs := make([]v8.Valuer, len(args))
+	for i, v := range args {
+		fnargs[i] = v
+	}
+	return MustCall(array, fnargs...)
+}
+func MustCall(fn *v8.Value, args ...v8.Valuer) *v8.Value {
+	f, err := fn.AsFunction()
+	if err != nil {
+		panic(err)
+	}
+	result, err := f.Call(fn, args...)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
 func MustReturn(call *v8.FunctionCallbackInfo, value interface{}) *v8.Value {
 	call.Release()
 	if value == nil {
@@ -67,53 +99,28 @@ func (m *Manager) Release() {
 		r.Release()
 	}
 }
-func (m *Manager) manage(v *v8.Value) *Value {
+func (m *Manager) manage(v *v8.Value) *v8.Value {
 	m.managed = append(m.managed, v)
-	return &Value{
-		Value: v,
-	}
+	return v
+
 }
 func (m *Manager) newValue(value interface{}) *v8.Value {
 	return mustNewValue(m.Context, value)
 }
-func (m *Manager) NewValue(value interface{}) *Value {
+func (m *Manager) NewValue(value interface{}) *v8.Value {
 	return m.manage(m.newValue(value))
 }
-func (m *Manager) NewStringArray(arags []string) *Value {
-	arr := make([]v8.Valuer, len(arags))
-	for i, v := range arags {
-		arr[i] = m.NewValue(v).Value
-	}
-	result := m.NewArray(arr)
-	return result
+func (m *Manager) NewArray(arags []v8.Valuer) *v8.Value {
+	return m.manage(MustNewArray(m.Context, arags))
 }
-func (m *Manager) NewArray(args []v8.Valuer) *Value {
-	global := m.Context.Global()
-	defer global.Release()
-	array, err := global.Get("Array")
-	defer array.Release()
-	if err != nil {
-		panic(err)
-	}
-	fnargs := make([]v8.Valuer, len(args))
-	for i, v := range args {
-		fnargs[i] = v
-	}
-	return m.Call(array, fnargs...)
+func (m *Manager) NewStringArray(arags []string) *v8.Value {
+	return m.manage(MustStringArray(m.Context, arags))
 }
-func (m *Manager) Call(fn *v8.Value, args ...v8.Valuer) *Value {
-	f, err := fn.AsFunction()
-	if err != nil {
-		panic(err)
-	}
-	result, err := f.Call(fn, args...)
-	if err != nil {
-		panic(err)
-	}
-	return m.manage(result)
+func (m *Manager) Call(fn *v8.Value, args ...v8.Valuer) *v8.Value {
+	return m.manage(MustCall(fn, args...))
 }
 
-func (m *Manager) GetItem(o *v8.Object, key string) *Value {
+func (m *Manager) GetItem(o *v8.Object, key string) *v8.Value {
 	item, err := o.Get(key)
 	if err != nil {
 		panic(err)
@@ -124,9 +131,9 @@ func (m *Manager) GetItem(o *v8.Object, key string) *Value {
 	return m.manage(item)
 }
 
-func (m *Manager) ConvertToArray(ctx *v8.Context, val *v8.Value) []*Value {
+func (m *Manager) ConvertToArray(ctx *v8.Context, val *v8.Value) []*v8.Value {
 	if val.IsNull() || val.IsUndefined() {
-		return []*Value{}
+		return []*v8.Value{}
 	}
 	if !val.IsArray() {
 		panic(errors.New("value is not an array"))
@@ -145,7 +152,7 @@ func (m *Manager) ConvertToArray(ctx *v8.Context, val *v8.Value) []*Value {
 	if l < 0 {
 		panic(errors.New("array length is negative"))
 	}
-	result := make([]*Value, l)
+	result := make([]*v8.Value, l)
 	for i := int32(0); i < l; i++ {
 
 		item, err := obj.GetIdx(uint32(i))
