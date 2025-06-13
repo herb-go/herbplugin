@@ -90,7 +90,6 @@ func (p *Plugin) MustClosePlugin() {
 	p.modules = nil
 	p.Builtin = nil
 	p.Plugin.MustClosePlugin()
-	p.Runtime.CloseAndDispose()
 }
 func (p *Plugin) LoadJsPlugin() *Plugin {
 	return p
