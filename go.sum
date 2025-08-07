@@ -9,8 +9,8 @@ github.com/google/pprof v0.0.0-20230207041349-798e818bf904 h1:4/hN5RUoecvl+RmJRE
 github.com/google/pprof v0.0.0-20230207041349-798e818bf904/go.mod h1:uglQLonpP8qtYCYyzA+8c/9qtqgA3qsXGYqCPKARAFg=
 github.com/herb-go/v8go v0.0.0-20250806174030-f1099543707e h1:5f8ZUT9OmYTXPtcZaMUTV+wfuCBFuRwjmxskrVq6FBg=
 github.com/herb-go/v8go v0.0.0-20250806174030-f1099543707e/go.mod h1:NVUDicg84q21+o3zRyGsIxrm2I1leD5xj/XlF8qBuzU=
-github.com/jarlyyn/v8js v0.0.0-20250806180405-033a355296eb h1:naw2lbAyAlGOdjJCRh6vzkLS4vwyFc4eKzRQTywgNoA=
-github.com/jarlyyn/v8js v0.0.0-20250806180405-033a355296eb/go.mod h1:YGbE/yqg8y5Vtg1Dud7IevUB0Rt0Ksz5bTSbHTUOcE4=
+github.com/jarlyyn/v8js v0.0.0-20250807095614-935667058d1d h1:+XZ2X4kHFddxWAXOXNRayZf/nDEeiJCdW4B2nJdPJJo=
+github.com/jarlyyn/v8js v0.0.0-20250807095614-935667058d1d/go.mod h1:YGbE/yqg8y5Vtg1Dud7IevUB0Rt0Ksz5bTSbHTUOcE4=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
 github.com/yuin/gopher-lua v1.1.1/go.mod h1:GBR0iDaNXjAgGg9zfCvksxSRnQx76gclCIb7kdAd1Pw=
 golang.org/x/text v0.4.0 h1:BrVqGRd7+k1DiOgtnFvAkoQEWQvBc25ouMJM6429SFg=

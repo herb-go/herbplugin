@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/dop251/goja v0.0.0-20250531102226-cb187b08699c
-	github.com/jarlyyn/v8js v0.0.0-20250806180405-033a355296eb
+	github.com/jarlyyn/v8js v0.0.0-20250807095614-935667058d1d
 	github.com/yuin/gopher-lua v1.1.1
 )
 
